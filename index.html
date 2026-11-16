@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kubo kóduje</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Crect x='1' y='1' width='14' height='14' fill='%239dff00'/%3E%3Crect x='4' y='4' width='8' height='8' fill='%2300e5ff'/%3E%3Crect x='5' y='6' width='2' height='2'/%3E%3Crect x='9' y='6' width='2' height='2'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Kubo <span>kóduje</span></h1>
+      <nav id="levels" aria-label="Úrovne"></nav>
+      <button id="save" class="btn btn-small" title="Uložiť postup do súboru">💾 Uložiť</button>
+      <button id="load" class="btn btn-small" title="Načítať postup zo súboru">📂 Načítať</button>
+      <input id="load-file" type="file" accept=".json,application/json" hidden />
+      <button id="mute" class="icon-btn" title="Zvuk zapnúť/vypnúť">🔊</button>
+    </header>
+
+    <main id="game-view">
+      <section id="left">
+        <div id="level-info" class="panel">
+          <h2 id="level-title"></h2>
+          <p id="level-hint"></p>
+          <ul id="level-goals"></ul>
+        </div>
+
+        <div id="stage"><canvas id="game"></canvas></div>
+
+        <div id="controls">
+          <button id="run" class="btn btn-run">▶ Spusti</button>
+          <button id="reset" class="btn">↺ Znova</button>
+          <button id="picture" class="btn" title="Stiahnuť obrázok" hidden>🖼 Obrázok</button>
+          <label class="speed" title="Rýchlosť">
+            🐢 <input id="speed" type="range" min="0.5" max="5" step="0.25" value="1" /> 🐇
+          </label>
+        </div>
+
+        <div id="message" hidden></div>
+
+        <details id="code-box" class="panel" open>
+          <summary>Tvoj program v JavaScripte</summary>
+          <pre id="code"></pre>
+        </details>
+      </section>
+
+      <section id="right"><div id="blockly"></div></section>
+    </main>
+
+    <main id="code-view" hidden>
+      <section class="code-left">
+        <div class="code-tabs">
+          <button class="ctab" data-mode="console">💬 Konzola</button>
+          <button class="ctab" data-mode="draw">🖌 Plátno</button>
+          <span class="spacer"></span>
+          <button id="code-save" class="btn btn-small" title="Uložiť kód do súboru">💾 Uložiť kód</button>
+          <button id="code-open" class="btn btn-small" title="Otvoriť kód zo súboru">📂 Otvoriť kód</button>
+          <input id="code-file" type="file" accept=".js,.txt,text/javascript,text/plain" hidden />
+        </div>
+        <div id="editor-console" class="editor"></div>
+        <div id="editor-draw" class="editor" hidden></div>
+      </section>
+
+      <div class="play-col">
+        <button id="play" class="btn btn-run" title="Spustiť (Ctrl+Enter)">▶</button>
+      </div>
+
+      <section class="code-right">
+        <div id="console-out" class="output"></div>
+        <div id="draw-out" hidden>
+          <div id="canvas-holder"></div>
+          <div id="coords"></div>
+          <div id="draw-log" class="output"></div>
+        </div>
+        <details id="reference" class="panel" open>
+          <summary>📖 Príkazy – klikni a vložia sa do kódu</summary>
+          <div id="reference-list"></div>
+        </details>
+      </section>
+    </main>
+
+    <div id="toast" hidden></div>
+
+    <div id="modal" hidden>
+      <div class="modal-card">
+        <h2 id="modal-title">ÚROVEŇ SPLNENÁ!</h2>
+        <div id="modal-stars"></div>
+        <ul id="modal-checks"></ul>
+        <div class="modal-buttons">
+          <button id="modal-retry" class="btn">↺ Skúsiť znova</button>
+          <button id="modal-next" class="btn btn-run">Ďalej ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
