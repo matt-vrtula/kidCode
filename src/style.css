@@ -134,6 +134,10 @@ h1 span {
   cursor: pointer;
 }
 
+#about-btn {
+  color: #fff;
+}
+
 main {
   flex: 1;
   min-height: 0;
@@ -298,7 +302,8 @@ main {
   height: 100%;
 }
 
-#modal {
+#modal,
+#about {
   position: fixed;
   inset: 0;
   display: flex;
@@ -310,6 +315,7 @@ main {
 }
 
 #modal[hidden],
+#about[hidden],
 #message[hidden] {
   display: none;
 }
@@ -358,6 +364,56 @@ main {
   text-align: left;
   font-size: 16px;
   line-height: 1.7;
+}
+
+.about-card {
+  max-width: 640px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  text-align: left;
+  font-size: 16px;
+  line-height: 1.5;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 4px #000, 0 0 40px rgba(0, 229, 255, 0.35);
+}
+
+.about-card h2 {
+  text-align: center;
+  color: var(--cyan);
+}
+
+.about-card h3 {
+  margin: 18px 0 6px;
+  font-family: var(--pixel);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gold);
+}
+
+.about-card p,
+.about-card ul {
+  margin: 0;
+}
+
+.about-card ul {
+  padding-left: 20px;
+}
+
+.about-card li {
+  margin-top: 4px;
+}
+
+.about-card a {
+  color: var(--cyan);
+}
+
+.about-card .credits {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.about-card .modal-buttons {
+  margin-top: 22px;
 }
 
 .modal-buttons {

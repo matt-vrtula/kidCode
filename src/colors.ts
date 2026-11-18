@@ -1,4 +1,4 @@
-// Pen colors for the drawing chapter (Minecraft wool palette). `ch` is the character used in level targets.
+// Pen colors for the drawing chapter (pixel-art wool palette). `ch` is the character used in level targets.
 export interface PenColor {
   name: string;
   ch: string;

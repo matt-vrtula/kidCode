@@ -1,8 +1,10 @@
 # Kubo kóduje
 
-A playful, Slovak-language programming game for kids. Kubo (a Geometry Dash style cube) walks through a
-Minecraft-like world, and the player steers him with Blockly blocks. The matching JavaScript is shown live
-under the game.
+A playful, Slovak-language programming game for kids. Kubo, a neon cube, walks through a blocky pixel-art
+world, and the player steers him with Blockly blocks. When kids are ready, they move on to real JavaScript
+in the built-in editor.
+
+**Play it:** https://matt-vrtula.github.io/kidCode/
 
 ## Run
 
@@ -46,3 +48,8 @@ panel: either a console (**Konzola**) or a 640×480 canvas (**Plátno**).
   [src/sandbox/api.ts](src/sandbox/api.ts). Colors can be CSS names or the Slovak names from `src/colors.ts`.
 - Syntax errors are found with acorn before running. Runtime errors are mapped back to an editor line and
   explained in Slovak.
+
+## License
+
+[MIT](LICENSE). Bundled third-party code keeps its own license: Blockly (Apache 2.0), CodeMirror and acorn (MIT),
+and the Nunito and Press Start 2P fonts (SIL Open Font License).

@@ -1,3 +1,11 @@
+// Fonts are bundled with the app instead of loaded from Google, so visitors' IPs
+// never reach a third party (GDPR). Latin + Latin Extended cover all Slovak letters.
+import '@fontsource/nunito/latin-600.css';
+import '@fontsource/nunito/latin-ext-600.css';
+import '@fontsource/nunito/latin-800.css';
+import '@fontsource/nunito/latin-ext-800.css';
+import '@fontsource/press-start-2p/latin-400.css';
+import '@fontsource/press-start-2p/latin-ext-400.css';
 import './style.css';
 import * as Blockly from 'blockly';
 import * as Sk from 'blockly/msg/sk';
@@ -7,7 +15,6 @@ import { exportProgress, importProgress, loadProgress, saveProgress } from './pr
 import { Renderer } from './renderer';
 import { runProgram, type RunResult } from './runner';
 import { Sandbox } from './sandbox/sandbox';
-import { sfx } from './sound';
 import { World, type Chapter, type Level } from './world';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -33,7 +40,7 @@ const ws = Blockly.inject($('blockly'), {
   theme,
   media: 'blockly-media/',
   trashcan: true,
-  sounds: true,
+  sounds: false,
   zoom: { controls: true, wheel: true, startScale: 0.9, maxScale: 2, minScale: 0.4 },
   move: { scrollbars: true, drag: true, wheel: false },
   grid: { spacing: 28, length: 3, colour: '#2c3448', snap: true },
@@ -46,7 +53,6 @@ ws.addChangeListener((e) => {
 window.addEventListener('resize', () => Blockly.svgResize(ws));
 
 const renderer = new Renderer($<HTMLCanvasElement>('game'));
-sfx.setMuted(progress.muted);
 
 const sandbox = new Sandbox({
   load: (mode) => progress.code[mode],
@@ -270,7 +276,6 @@ function showFail(r: RunResult) {
     wrongPicture: `Obrázok ešte nesedí: ${wrong} ${plural(wrong, 'políčko je', 'políčka sú', 'políčok je')} inak, než na predlohe. Červené rámčeky ukazujú kde.`,
   };
   if (r.outcome === 'wrongPicture') renderer.markWrong(r.wrongCells ?? []);
-  if (['notThere', 'tooLong', 'error', 'wrongPicture'].includes(r.outcome)) sfx.nope();
   showMessage(messages[r.outcome]);
 }
 
@@ -334,13 +339,18 @@ $('picture').onclick = () => {
 $<HTMLInputElement>('speed').oninput = (e) => {
   renderer.speed = Number((e.target as HTMLInputElement).value);
 };
-$('mute').onclick = () => {
-  progress.muted = !progress.muted;
-  sfx.setMuted(progress.muted);
-  $('mute').textContent = progress.muted ? '🔇' : '🔊';
-  saveProgress(progress);
+const closeAbout = () => ($('about').hidden = true);
+$('about-btn').onclick = () => {
+  $('about').hidden = false;
+  $('about-close').focus();
 };
-$('mute').textContent = progress.muted ? '🔇' : '🔊';
+$('about-close').onclick = closeAbout;
+$('about').onclick = (e) => {
+  if (e.target === e.currentTarget) closeAbout(); // click on the dimmed backdrop
+};
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('about').hidden) closeAbout();
+});
 
 let toastTimer = 0;
 function toast(text: string, error = false) {
@@ -365,8 +375,6 @@ $<HTMLInputElement>('load-file').onchange = async (e) => {
   try {
     Object.assign(progress, await importProgress(file));
     saveProgress(progress);
-    sfx.setMuted(progress.muted);
-    $('mute').textContent = progress.muted ? '🔇' : '🔊';
     const index = Math.min(progress.level, LEVELS.length - 1);
     loadLevel(isUnlocked(index) ? index : 0);
     sandbox.reload();

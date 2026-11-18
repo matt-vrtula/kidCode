@@ -6,7 +6,6 @@ export interface Progress {
   attempts: Record<string, number>;
   /** Saved Blockly workspace per level id. */
   programs: Record<string, object>;
-  muted: boolean;
   level: number;
   /** Which part of the app was open last: the block game or the JavaScript sandbox. */
   view: 'game' | 'code';
@@ -19,7 +18,6 @@ const defaults = (): Progress => ({
   stars: {},
   attempts: {},
   programs: {},
-  muted: false,
   level: 0,
   view: 'game',
   codeMode: 'console',

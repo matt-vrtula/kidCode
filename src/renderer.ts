@@ -1,7 +1,6 @@
 import { isRaised, type Level, type Tile, type World } from './world';
 import type { Point, Step } from './runner';
 import { COLOR_BY_CHAR, COLOR_BY_NAME } from './colors';
-import { sfx } from './sound';
 
 const TEX = 8; // texture resolution in "pixels" per tile
 const VARIANTS = 4;
@@ -211,7 +210,6 @@ export class Renderer {
   }
 
   celebrate() {
-    sfx.win();
     this.flash = { color: '157,255,0', a: 0.8 };
     for (let k = 0; k < 4; k++) setTimeout(() => this.burst(this.px, this.py, NEON, 40, 7), k * 160);
   }
@@ -240,7 +238,6 @@ export class Renderer {
   private async animate(s: Step) {
     switch (s.kind) {
       case 'move': {
-        sfx.move();
         const spin0 = this.spin;
         await this.tween(this.d(340), (t) => {
           const e = easeInOut(t);
@@ -257,12 +254,10 @@ export class Renderer {
         if (s.collected) {
           this.tiles[s.to.y][s.to.x] = '.';
           this.burst(s.to.x, s.to.y, ['#4ee6f0', '#ffffff', '#1aa6b7'], 24, 4);
-          sfx.diamond();
         }
         break;
       }
       case 'turn': {
-        sfx.turn();
         const a0 = this.dirAngle;
         await this.tween(this.d(220), (t) => {
           this.dirAngle = a0 + s.delta * (Math.PI / 2) * easeInOut(t);
@@ -282,14 +277,12 @@ export class Renderer {
             this.oy = dy * k;
             if (s.hit) this.cracks.set(key, (i + t) / swings);
           });
-          if (s.hit) sfx.hit();
         }
         this.ox = this.oy = 0;
         if (s.hit) {
           this.cracks.delete(key);
           this.tiles[s.at.y][s.at.x] = '.';
           this.burst(s.at.x, s.at.y, PAL.stone, 26, 4);
-          sfx.mine();
         }
         break;
       }
@@ -300,7 +293,6 @@ export class Renderer {
           this.ox = dx * t * 0.32;
           this.oy = dy * t * 0.32;
         });
-        sfx.bump();
         this.shake = 1;
         this.flash = { color: '255,60,60', a: 1 };
         await this.tween(this.d(260), (t) => {
@@ -316,7 +308,6 @@ export class Renderer {
           this.hop = Math.sin(Math.PI * t) * 0.6;
         });
         this.hop = 0;
-        sfx.fall();
         const lava = s.into === 'L';
         this.burst(s.to.x, s.to.y, lava ? PAL.lava : PAL.water, 30, 3);
         this.flash = { color: lava ? '255,120,0' : '60,120,255', a: 0.8 };
@@ -328,7 +319,6 @@ export class Renderer {
         break;
       }
       case 'paint': {
-        sfx.paint();
         const key = `${s.at.x},${s.at.y}`;
         this.paint[s.at.y][s.at.x] = s.color;
         this.burst(s.at.x, s.at.y, [COLOR_BY_NAME[s.color].hex, '#ffffff'], 10, 2.5);
@@ -341,7 +331,6 @@ export class Renderer {
         break;
       }
       case 'color': {
-        sfx.color();
         this.pen = s.color;
         await this.tween(this.d(200), (t) => {
           this.scale = 1 + Math.sin(Math.PI * t) * 0.25;
@@ -589,7 +578,7 @@ export class Renderer {
     g.drawImage(this.tex.diamond, sx + ts * 0.15, sy + ts * 0.08 + bob, ts * 0.7, ts * 0.7);
   }
 
-  /** The hero: a Geometry Dash style cube with a white arrow showing where it faces. */
+  /** The hero: a neon cube with a white arrow showing where it faces. */
   private drawPlayer() {
     if (this.scale <= 0.01) return;
     const g = this.ctx;

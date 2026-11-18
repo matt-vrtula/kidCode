@@ -244,7 +244,7 @@ export const LEVELS: Level[] = [
     id: 'd7',
     chapter: 'draw',
     title: 'Voľné kreslenie',
-    hint: 'Kubo vie maľovať! „namaľuj“ zafarbí políčko, na ktorom Kubo stojí, a „farba“ mu vymení farbu. Nakresli, čo chceš – Creepera, dúhu, svoje meno… Hotový obrázok si stiahneš tlačidlom 🖼.',
+    hint: 'Kubo vie maľovať! „namaľuj“ zafarbí políčko, na ktorom Kubo stojí, a „farba“ mu vymení farbu. Nakresli, čo chceš – robota, dúhu, svoje meno… Hotový obrázok si stiahneš tlačidlom 🖼.',
     map: canvas(16, 12, 1, 1, '>'),
     free: true,
     toolbox: [...DRAW_LOOPS, 'ak', 'ak_inak'],
