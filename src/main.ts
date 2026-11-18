@@ -121,7 +121,8 @@ function renderLevelBar() {
     tab('💻 JavaScript', !inGame, () => showView('code')),
   ];
   const buttons = LEVELS.flatMap((lv, i) => {
-    if (!inGame || lv.chapter !== current) return [];
+    // a chapter with a single level (free drawing) needs no level buttons
+    if (!inGame || lv.chapter !== current || inChapter(current).length < 2) return [];
     const b = document.createElement('button');
     const stars = progress.stars[lv.id] ?? 0;
     const label = lv.free ? '🎨' : isUnlocked(i) ? numberInChapter(lv) : '🔒';
@@ -188,9 +189,6 @@ function onProgramChanged() {
   progress.programs[lv.id] = Blockly.serialization.workspaces.save(ws);
   saveProgress(progress);
 
-  const code = generateCode(ws, false).trim();
-  $('code').innerHTML = highlightJs(code || '// Zatiaľ prázdny program – pridaj bloky pod „keď spustím“!');
-
   const n = countBlocks(ws);
   const blocksGoal = `🧩 Použi najviac ${lv.par} ${blocksWord(lv.par)} <span class="${n > lv.par ? 'over' : ''}">(teraz: ${n})</span>`;
   let goals: string[];
@@ -206,17 +204,6 @@ function onProgramChanged() {
     goals.push(blocksGoal);
   }
   $('level-goals').innerHTML = goals.map((g) => `<li>${g}</li>`).join('');
-}
-
-function highlightJs(code: string) {
-  const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return escaped.replace(
-    /(\/\/.*$)|('[^']*')|\b(for|let|while|if|else)\b|\b([A-Za-z_]\w*)(?=\()|\b(\d+)\b/gm,
-    (m, cm, str, kw, fn, num) => {
-      const cls = cm ? 'cm' : str ? 'str' : kw ? 'kw' : fn ? 'fn' : num ? 'num' : '';
-      return `<span class="${cls}">${m}</span>`;
-    },
-  );
 }
 
 function setRunning(r: boolean) {

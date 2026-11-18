@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS } from './levels';
 import { runProgram } from './runner';
+import type { Level } from './world';
 
 describe('levels', () => {
   it('have unique ids', () => {
@@ -31,7 +32,19 @@ describe('levels', () => {
 
 describe('runner outcomes', () => {
   const [l1, , , l4] = LEVELS;
-  const d1 = LEVELS.find((l) => l.id === 'd1')!;
+  const free = LEVELS.find((l) => l.free)!;
+  // Drawing with a target picture: no such level ships now, but the engine still supports it.
+  const target: Level = {
+    id: 'test-target',
+    chapter: 'draw',
+    title: 'Test',
+    hint: '',
+    map: ['.>...', '.....'],
+    target: ['.kk..', '.....'],
+    toolbox: [],
+    par: 0,
+    solution: '',
+  };
 
   it('stops short of the goal', () => {
     expect(runProgram('chodDopredu();', l1).outcome).toBe('notThere');
@@ -55,19 +68,27 @@ describe('runner outcomes', () => {
     expect(runProgram('while (!somVCieli()) { loopTrap(); otocVlavo(); }', l1).outcome).toBe('tooLong');
   });
 
+  it('accepts a drawing that matches the target picture', () => {
+    expect(runProgram('namaluj(); chodDopredu(); namaluj();', target).outcome).toBe('won');
+  });
+
   it('reports which cells of a drawing are wrong', () => {
-    const r = runProgram("farba('červená'); namaluj(); chodDopredu(); namaluj();", d1);
+    const r = runProgram("farba('červená'); namaluj(); chodDopredu(); chodDopredu(); namaluj();", target);
     expect(r.outcome).toBe('wrongPicture');
-    // 2 painted red instead of black, 2 black cells missing
-    expect(r.wrongCells).toHaveLength(4);
+    // red instead of black, a black cell left empty, red where nothing should be
+    expect(r.wrongCells).toHaveLength(3);
+  });
+
+  it('free drawing just finishes', () => {
+    expect(runProgram("farba('modrá'); namaluj();", free).outcome).toBe('drawn');
   });
 
   it('cannot walk off the canvas', () => {
-    expect(runProgram('for (let i = 0; i < 9; i++) chodDopredu();', d1).outcome).toBe('crashed');
+    expect(runProgram('for (let i = 0; i < 20; i++) chodDopredu();', free).outcome).toBe('crashed');
   });
 
   it('rejects an unknown color', () => {
-    const r = runProgram("farba('zlatá');", d1);
+    const r = runProgram("farba('zlatá');", free);
     expect(r.outcome).toBe('error');
     expect(r.error).toContain('zlatá');
   });

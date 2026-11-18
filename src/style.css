@@ -138,7 +138,7 @@ main {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(340px, 500px) 1fr;
+  grid-template-columns: minmax(380px, 760px) 1fr;
   gap: 12px;
   padding: 12px;
 }
@@ -188,7 +188,9 @@ main {
 }
 
 #stage {
-  aspect-ratio: 4 / 3;
+  /* fills the column's free height; the renderer scales the map to fit */
+  flex: 1;
+  min-height: 300px;
   border: 4px solid var(--border);
   background: #0b0e16;
 }
@@ -283,40 +285,6 @@ main {
 
 #picture[hidden] {
   display: none;
-}
-
-#code-box summary {
-  cursor: pointer;
-  font-family: var(--pixel);
-  font-size: 10px;
-  color: var(--cyan);
-}
-
-#code {
-  margin: 10px 0 0;
-  padding: 10px;
-  background: #0f1320;
-  font-family: Consolas, 'Courier New', monospace;
-  font-size: 15px;
-  line-height: 1.4;
-  white-space: pre-wrap;
-  color: #dfe6ff;
-}
-
-#code .kw {
-  color: var(--pink);
-}
-#code .fn {
-  color: var(--cyan);
-}
-#code .num {
-  color: var(--gold);
-}
-#code .str {
-  color: var(--neon);
-}
-#code .cm {
-  color: var(--muted);
 }
 
 #right {
@@ -649,6 +617,11 @@ main[hidden] {
   }
   #right {
     height: 70vh;
+  }
+  #stage {
+    flex: none;
+    aspect-ratio: 4 / 3;
+    min-height: 0;
   }
   #code-view {
     grid-template-columns: 1fr;
