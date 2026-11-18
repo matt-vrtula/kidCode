@@ -34,6 +34,13 @@ export function loadProgress(): Progress {
   return defaults();
 }
 
+/** Wipes the progress in place (stars, programs, JavaScript code…) and saves the empty state. */
+export function resetProgress(p: Progress) {
+  for (const key of Object.keys(p)) delete (p as unknown as Record<string, unknown>)[key];
+  Object.assign(p, defaults());
+  saveProgress(p);
+}
+
 export function saveProgress(p: Progress) {
   try {
     localStorage.setItem(KEY, JSON.stringify(p));

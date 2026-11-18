@@ -11,7 +11,7 @@ import * as Blockly from 'blockly';
 import * as Sk from 'blockly/msg/sk';
 import { countBlocks, generateCode, registerBlocks, theme, toolboxFor } from './blocks';
 import { LEVELS } from './levels';
-import { exportProgress, importProgress, loadProgress, saveProgress } from './progress';
+import { exportProgress, importProgress, loadProgress, resetProgress, saveProgress } from './progress';
 import { Renderer } from './renderer';
 import { runProgram, type RunResult } from './runner';
 import { Sandbox } from './sandbox/sandbox';
@@ -40,6 +40,9 @@ const ws = Blockly.inject($('blockly'), {
   theme,
   media: 'blockly-media/',
   trashcan: true,
+  // Blockly's trashcan would keep deleted blocks and open a "restore" list on click;
+  // we make a click clear the program instead (see clearProgram).
+  maxTrashcanContents: 0,
   sounds: false,
   zoom: { controls: true, wheel: true, startScale: 0.9, maxScale: 2, minScale: 0.4 },
   move: { scrollbars: true, drag: true, wheel: false },
@@ -51,6 +54,23 @@ ws.addChangeListener((e) => {
   onProgramChanged();
 });
 window.addEventListener('resize', () => Blockly.svgResize(ws));
+
+/** Deletes every block except "keď spustím", as one undoable step (Ctrl+Z brings it all back). */
+function clearProgram() {
+  const start = ws.getBlocksByType('start', false)[0];
+  const others = ws.getTopBlocks(false).filter((b) => b !== start);
+  if (!others.length && !start?.getNextBlock()) return;
+  if (!confirm('Vymazať všetky bloky? (Späť ich vrátiš klávesmi Ctrl+Z.)')) return;
+  Blockly.Events.setGroup(true);
+  try {
+    start?.getNextBlock()?.dispose(false);
+    others.forEach((b) => b.dispose(false));
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+}
+// 'click' (not pointerup) so that dropping a dragged block on the trashcan doesn't trigger it
+document.querySelector('#blockly .blocklyTrash')?.addEventListener('click', clearProgram);
 
 const renderer = new Renderer($<HTMLCanvasElement>('game'));
 
@@ -339,6 +359,7 @@ $('picture').onclick = () => {
 $<HTMLInputElement>('speed').oninput = (e) => {
   renderer.speed = Number((e.target as HTMLInputElement).value);
 };
+
 const closeAbout = () => ($('about').hidden = true);
 $('about-btn').onclick = () => {
   $('about').hidden = false;
@@ -361,6 +382,21 @@ function toast(text: string, error = false) {
   clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => (t.hidden = true), 3500);
 }
+
+$('reset-progress').onclick = () => {
+  const ok = confirm(
+    'Naozaj vymazať celý postup?\n\n' +
+      'Zmažú sa všetky hviezdičky, programy z blokov, kresby aj kód v JavaScripte. Toto sa nedá vrátiť späť.\n\n' +
+      'Tip: najprv si postup zálohuj tlačidlom 💾 Uložiť.',
+  );
+  if (!ok) return;
+  resetProgress(progress);
+  closeAbout();
+  sandbox.reload();
+  showView('game');
+  loadLevel(0);
+  toast('🧹 Postup je vymazaný. Začíname odznova!');
+};
 
 $('save').onclick = () => {
   exportProgress(progress);
