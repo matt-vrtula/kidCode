@@ -717,3 +717,11 @@ main[hidden] {
     margin-left: 0;
   }
 }
+
+/* Shown only without JavaScript (also read by crawlers that don't run JS) */
+.noscript {
+  max-width: 640px;
+  margin: 32px auto;
+  padding: 0 16px;
+  line-height: 1.6;
+}

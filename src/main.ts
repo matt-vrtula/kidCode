@@ -14,7 +14,7 @@ import { LEVELS } from './levels';
 import { exportProgress, importProgress, loadProgress, resetProgress, saveProgress } from './progress';
 import { Renderer } from './renderer';
 import { runProgram, type RunResult } from './runner';
-import { Sandbox } from './sandbox/sandbox';
+import type { Sandbox, SandboxStore } from './sandbox/sandbox';
 import { World, type Chapter, type Level } from './world';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -74,7 +74,7 @@ document.querySelector('#blockly .blocklyTrash')?.addEventListener('click', clea
 
 const renderer = new Renderer($<HTMLCanvasElement>('game'));
 
-const sandbox = new Sandbox({
+const sandboxStore: SandboxStore = {
   load: (mode) => progress.code[mode],
   save: (mode, code) => {
     progress.code[mode] = code;
@@ -84,7 +84,21 @@ const sandbox = new Sandbox({
     progress.codeMode = mode;
     saveProgress(progress);
   },
-});
+};
+
+// The JavaScript sandbox (CodeMirror + acorn) is a separate chunk, downloaded only
+// when the 💻 JavaScript tab is first opened (or hovered), so the block game loads faster.
+let sandbox: Sandbox | null = null;
+let sandboxLoading: Promise<Sandbox> | null = null;
+function loadSandbox(): Promise<Sandbox> {
+  sandboxLoading ??= import('./sandbox/sandbox')
+    .then(({ Sandbox }) => (sandbox = new Sandbox(sandboxStore)))
+    .catch((err: unknown) => {
+      sandboxLoading = null; // allow a retry, e.g. after the connection comes back
+      throw err;
+    });
+  return sandboxLoading;
+}
 
 /** Switches between the block game and the JavaScript sandbox. */
 function showView(view: 'game' | 'code') {
@@ -94,9 +108,13 @@ function showView(view: 'game' | 'code') {
   $('code-view').hidden = view !== 'code';
   if (view === 'code') {
     stopRun();
-    sandbox.show(progress.codeMode);
+    loadSandbox().then(
+      // the child may have switched back to the game while the editor was downloading
+      (s) => progress.view === 'code' && s.show(progress.codeMode),
+      () => toast('JavaScript editor sa nepodarilo načítať. Skontroluj pripojenie a skús to znova.', true),
+    );
   } else {
-    sandbox.stop();
+    sandbox?.stop();
     Blockly.svgResize(ws);
   }
   renderLevelBar();
@@ -146,6 +164,8 @@ function renderLevelBar() {
     ...CHAPTERS.map((c) => tab(c.title, inGame && c.id === current, () => openChapter(c.id))),
     tab('💻 JavaScript', !inGame, () => showView('code')),
   ];
+  // Start downloading the editor as soon as the pointer is on its way to the tab.
+  tabs[tabs.length - 1].onpointerenter = () => void loadSandbox().catch(() => {});
   const buttons = LEVELS.flatMap((lv, i) => {
     // a chapter with a single level (free drawing) needs no level buttons
     if (!inGame || lv.chapter !== current || inChapter(current).length < 2) return [];
@@ -392,7 +412,7 @@ $('reset-progress').onclick = () => {
   if (!ok) return;
   resetProgress(progress);
   closeAbout();
-  sandbox.reload();
+  sandbox?.reload();
   showView('game');
   loadLevel(0);
   toast('🧹 Postup je vymazaný. Začíname odznova!');
@@ -413,7 +433,7 @@ $<HTMLInputElement>('load-file').onchange = async (e) => {
     saveProgress(progress);
     const index = Math.min(progress.level, LEVELS.length - 1);
     loadLevel(isUnlocked(index) ? index : 0);
-    sandbox.reload();
+    sandbox?.reload();
     showView(progress.view);
     const stars = Object.values(progress.stars).reduce((a, b) => a + b, 0);
     toast(`📂 Postup načítaný! Máš ${stars} ★ a pokračuješ úrovňou „${level().title}“.`);

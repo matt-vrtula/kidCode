@@ -3,11 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kubo kóduje – hravé programovanie pre deti</title>
+    <title>Kubo kóduje – hravé programovanie pre deti zadarmo</title>
     <meta
       name="description"
-      content="Bezplatná hra, v ktorej sa deti učia programovať – od skladania blokov až po skutočný JavaScript. Bez registrácie, bez reklám, bez sledovania."
+      content="Bezplatná hra, v ktorej sa deti od 8 rokov učia programovať – od skladania blokov až po skutočný JavaScript. Bez registrácie, bez reklám, bez sledovania."
     />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <!-- One indexable URL; variants such as ?odomkni point back here -->
+    <link rel="canonical" href="https://matt-vrtula.github.io/kidCode/" />
+    <link rel="sitemap" type="application/xml" href="sitemap.xml" />
     <meta name="theme-color" content="#141824" />
 
     <!-- Link previews (Facebook, WhatsApp, Messenger, X…); images need absolute URLs -->
@@ -24,12 +28,37 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Hra Kubo kóduje: labyrint a programovacie bloky" />
+    <meta property="og:image:type" content="image/png" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- Icons as real files: search engines can't use a data: URI favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Crect x='1' y='1' width='14' height='14' fill='%239dff00'/%3E%3Crect x='4' y='4' width='8' height='8' fill='%2300e5ff'/%3E%3Crect x='5' y='6' width='2' height='2'/%3E%3Crect x='9' y='6' width='2' height='2'/%3E%3C/svg%3E"
-    />
+
+    <!-- Structured data for search engines (schema.org) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Kubo kóduje",
+        "alternateName": "kidCode",
+        "url": "https://matt-vrtula.github.io/kidCode/",
+        "image": "https://matt-vrtula.github.io/kidCode/og-image.png",
+        "description": "Bezplatná hra, v ktorej sa deti od 8 rokov učia programovať – od skladania blokov až po skutočný JavaScript. Bez registrácie, bez reklám, bez sledovania.",
+        "inLanguage": "sk",
+        "applicationCategory": "EducationalApplication",
+        "applicationSubCategory": "Programovanie pre deti",
+        "operatingSystem": "Webový prehliadač",
+        "browserRequirements": "Vyžaduje JavaScript",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "audience": { "@type": "EducationalAudience", "educationalRole": "student", "audienceType": "deti od 8 rokov" },
+        "typicalAgeRange": "8-",
+        "educationalUse": "hra",
+        "teaches": ["poradie príkazov", "cykly", "podmienky", "hľadanie chýb", "JavaScript"],
+        "license": "https://opensource.org/licenses/MIT",
+        "sameAs": ["https://github.com/matt-vrtula/kidCode"]
+      }
+    </script>
   </head>
   <body>
     <header>
@@ -39,6 +68,18 @@
       <button id="load" class="btn btn-small" title="Načítať postup zo súboru">📂 Načítať</button>
       <input id="load-file" type="file" accept=".json,application/json" hidden />
       <button id="about-btn" class="icon-btn" title="O aplikácii">ⓘ</button>    </header>
+
+    <noscript>
+      <section class="noscript">
+        <h2>Kubo kóduje potrebuje JavaScript</h2>
+        <p>
+          <b>Kubo kóduje</b> je bezplatná hra, v ktorej sa deti od 8 rokov učia programovať. Najprv skladajú
+          programovacie bloky a vedú kocku Kuba cez labyrinty, potom s blokmi kreslia obrázky a nakoniec píšu
+          skutočný JavaScript – premenné, cykly, kreslenie aj animácie. Bez registrácie, bez reklám, bez sledovania.
+        </p>
+        <p>Ak chcete hrať, zapnite si v prehliadači JavaScript.</p>
+      </section>
+    </noscript>
 
     <main id="game-view">
       <section id="left">
@@ -125,7 +166,7 @@
         <ul>
           <li><b>💾 Uložiť</b> a <b>📂 Načítať</b> zálohujú postup do súboru, napríklad pri presune na iný počítač.</li>
           <li>Vymazaním údajov prehliadača sa zmaže aj postup, preto si ho občas zálohujte.</li>
-          <li>Chcete preskúmať všetky úrovne? <a href="?odomkni">Odomknúť všetky úrovne</a>.</li>
+          <li>Chcete preskúmať všetky úrovne? <a href="?odomkni" rel="nofollow">Odomknúť všetky úrovne</a>.</li>
           <li>
             Chcete začať úplne od začiatku, napríklad na zdieľanom počítači?
             <button id="reset-progress" class="link-btn danger">Vymazať celý postup</button>.
