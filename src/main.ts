@@ -361,6 +361,8 @@ function showWin(r: RunResult) {
     .join('');
   $('modal-checks').innerHTML = checks.map((c) => `<li>${c}</li>`).join('');
   $('modal-next').hidden = next === null;
+  // the one place we mention support unasked: after finishing the whole adventure
+  $('modal-support').hidden = !(next === null && lv.chapter === 'maze');
   $('modal').hidden = false;
 }
 
@@ -380,18 +382,37 @@ $<HTMLInputElement>('speed').oninput = (e) => {
   renderer.speed = Number((e.target as HTMLInputElement).value);
 };
 
-const closeAbout = () => ($('about').hidden = true);
-$('about-btn').onclick = () => {
-  $('about').hidden = false;
-  $('about-close').focus();
-};
-$('about-close').onclick = closeAbout;
-$('about').onclick = (e) => {
-  if (e.target === e.currentTarget) closeAbout(); // click on the dimmed backdrop
-};
+// Info windows close with their button, a click on the dimmed backdrop, or Esc.
+const INFO_WINDOWS = ['support', 'about']; // topmost first: support can open over About
+function openInfo(id: string) {
+  $(id).hidden = false;
+  $(`${id}-close`).focus();
+}
+const closeInfo = (id: string) => ($(id).hidden = true);
+for (const id of INFO_WINDOWS) {
+  $(`${id}-close`).onclick = () => closeInfo(id);
+  $(id).onclick = (e) => {
+    if (e.target === e.currentTarget) closeInfo(id);
+  };
+}
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !$('about').hidden) closeAbout();
+  const open = INFO_WINDOWS.find((id) => !$(id).hidden);
+  if (e.key === 'Escape' && open) closeInfo(open);
 });
+$('about-btn').onclick = () => openInfo('about');
+for (const id of ['support-btn', 'about-support', 'modal-support-btn']) $(id).onclick = () => openInfo('support');
+$('iban-copy').onclick = async () => {
+  const iban = $('iban').textContent!.replace(/\s/g, '');
+  try {
+    await navigator.clipboard.writeText(iban);
+    $('iban-copy').textContent = 'Skopírované ✓';
+  } catch {
+    // clipboard blocked: select the text so it can be copied with Ctrl+C
+    getSelection()?.selectAllChildren($('iban'));
+    $('iban-copy').textContent = 'Stlač Ctrl+C';
+  }
+  setTimeout(() => ($('iban-copy').textContent = 'Kopírovať'), 2000);
+};
 
 let toastTimer = 0;
 function toast(text: string, error = false) {
@@ -411,7 +432,7 @@ $('reset-progress').onclick = () => {
   );
   if (!ok) return;
   resetProgress(progress);
-  closeAbout();
+  closeInfo('about');
   sandbox?.reload();
   showView('game');
   loadLevel(0);
