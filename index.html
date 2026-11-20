@@ -67,7 +67,9 @@
       <button id="save" class="btn btn-small" title="Uložiť postup do súboru">💾 Uložiť</button>
       <button id="load" class="btn btn-small" title="Načítať postup zo súboru">📂 Načítať</button>
       <input id="load-file" type="file" accept=".json,application/json" hidden />
-      <button id="about-btn" class="icon-btn" title="O aplikácii">ⓘ</button>    </header>
+      <button id="support-btn" class="btn btn-small support-btn" title="Podporiť projekt">☕ Podporiť</button>
+      <button id="about-btn" class="icon-btn" title="O aplikácii">ⓘ</button>
+    </header>
 
     <noscript>
       <section class="noscript">
@@ -191,6 +193,12 @@
           Zdrojový kód je otvorený (licencia MIT).
         </p>
 
+        <h3>Podpora</h3>
+        <p>
+          Aplikácia je zadarmo a bez reklám. Ak chcete podporiť jej ďalší vývoj,
+          <button id="about-support" class="link-btn">môžete mi kúpiť kávu ☕</button>.
+        </p>
+
         <h3>Poďakovanie</h3>
         <p class="credits">
           Postavené s knižnicami <a href="https://developers.google.com/blockly" target="_blank" rel="noopener">Blockly</a>,
@@ -204,11 +212,38 @@
       </div>
     </div>
 
+    <div id="support" hidden>
+      <div class="modal-card support-card" role="dialog" aria-modal="true" aria-labelledby="support-title">
+        <h2 id="support-title">PODPORIŤ PROJEKT</h2>
+        <p>
+          Kubo kóduje je zadarmo, bez reklám a bez sledovania. Ak sa vám páči a chcete podporiť jeho ďalší vývoj, budem
+          rád za kávu ☕
+        </p>
+        <img class="support-qr" src="podpora-qr.png" alt="QR kód na platbu PAY by square" width="560" height="687" />
+        <p class="support-hint">
+          Naskenujte QR kód v aplikácii svojej banky. Sumu si pred odoslaním môžete zmeniť.
+        </p>
+        <div class="support-iban">
+          <span>IBAN:</span>
+          <code id="iban">SK47 5600 0000 0099 8722 4002</code>
+          <button id="iban-copy" class="btn btn-small">Kopírovať</button>
+        </div>
+        <p class="support-thanks">Ďakujem! 💚</p>
+        <div class="modal-buttons">
+          <button id="support-close" class="btn btn-run">Zavrieť</button>
+        </div>
+      </div>
+    </div>
+
     <div id="modal" hidden>
       <div class="modal-card">
         <h2 id="modal-title">ÚROVEŇ SPLNENÁ!</h2>
         <div id="modal-stars"></div>
         <ul id="modal-checks"></ul>
+        <p id="modal-support" hidden>
+          Páčil sa vám Kubo? Aplikácia je zadarmo a bez reklám.
+          <button id="modal-support-btn" class="link-btn">Podporte jej ďalší vývoj ☕</button>
+        </p>
         <div class="modal-buttons">
           <button id="modal-retry" class="btn">↺ Skúsiť znova</button>
           <button id="modal-next" class="btn btn-run">Ďalej ▶</button>
