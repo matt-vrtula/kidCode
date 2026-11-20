@@ -46,10 +46,25 @@ panel: either a console (**Konzola**) or a 640×480 canvas (**Plátno**).
 - In **Plátno**, drawing needs no setup: `fillCircle(x, y, diameter, color)`, `line(...)`, `drawRectangle(...)` …
   The full list, which also drives autocomplete and the clickable reference, is in
   [src/sandbox/api.ts](src/sandbox/api.ts). Colors can be CSS names or the Slovak names from `src/colors.ts`.
+- In **🧱 3D svet**, code builds with blocks in a 256×256×256 world: `addBlock(x, y, z, 'brick')`, `deleteBlock`,
+  `getBlock`, `fill(x1, y1, z1, x2, y2, z2, type)`, `clearWorld()`. y points up and y = 0 is the layer on the grass.
+  Blocks outside the world (including below the grass) are ignored. A block type is a name from
+  [src/sandbox/voxel/blocks.ts](src/sandbox/voxel/blocks.ts) (English or Slovak) or any color (`'red'`, `'červená'`, `'#ff8800'`).
+  Every run starts with an empty world. Click into the view to fly: W A S D, mouse, Space up, Shift down, Esc to stop.
 - Syntax errors are found with acorn before running. Runtime errors are mapped back to an editor line and
   explained in Slovak.
 
+### How the 3D world works
+
+The kid's code still runs in the worker, which keeps its own copy of the blocks (so `getBlock` answers instantly)
+and sends every change to the page in batches. The page owns the three.js scene
+([src/sandbox/voxel/view.ts](src/sandbox/voxel/view.ts)), so you can keep flying around while a program is
+busy, and after ■ stops it. Blocks are stored in 16³ chunks ([grid.ts](src/sandbox/voxel/grid.ts)), allocated only
+where something is built. Each changed chunk is turned into triangles ([mesher.ts](src/sandbox/voxel/mesher.ts)):
+only faces next to an empty cell are drawn, with fixed shading per side and darker corners. three.js is a separate
+chunk, downloaded only when the 3D tab is first opened.
+
 ## License
 
-[MIT](LICENSE). Bundled third-party code keeps its own license: Blockly (Apache 2.0), CodeMirror and acorn (MIT),
+[MIT](LICENSE). Bundled third-party code keeps its own license: Blockly (Apache 2.0), CodeMirror, acorn and three.js (MIT),
 and the Nunito and Press Start 2P fonts (SIL Open Font License).

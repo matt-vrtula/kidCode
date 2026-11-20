@@ -75,7 +75,7 @@
         <p>
           <b>Kubo kóduje</b> je bezplatná hra, v ktorej sa deti od 8 rokov učia programovať. Najprv skladajú
           programovacie bloky a vedú kocku Kuba cez labyrinty, potom s blokmi kreslia obrázky a nakoniec píšu
-          skutočný JavaScript – premenné, cykly, kreslenie aj animácie. Bez registrácie, bez reklám, bez sledovania.
+          skutočný JavaScript – premenné, cykly, kreslenie, animácie aj stavanie v 3D svete. Bez registrácie, bez reklám, bez sledovania.
         </p>
         <p>Ak chcete hrať, zapnite si v prehliadači JavaScript.</p>
       </section>
@@ -111,6 +111,7 @@
         <div class="code-tabs">
           <button class="ctab" data-mode="console">💬 Konzola</button>
           <button class="ctab" data-mode="draw">🖌 Plátno</button>
+          <button class="ctab" data-mode="world">🧱 3D svet</button>
           <span class="spacer"></span>
           <button id="code-save" class="btn btn-small" title="Uložiť kód do súboru">💾 Uložiť kód</button>
           <button id="code-open" class="btn btn-small" title="Otvoriť kód zo súboru">📂 Otvoriť kód</button>
@@ -118,6 +119,7 @@
         </div>
         <div id="editor-console" class="editor"></div>
         <div id="editor-draw" class="editor" hidden></div>
+        <div id="editor-world" class="editor" hidden></div>
       </section>
 
       <div class="play-col">
@@ -130,6 +132,15 @@
           <div id="canvas-holder"></div>
           <div id="coords"></div>
           <div id="draw-log" class="output"></div>
+        </div>
+        <div id="world-out" hidden>
+          <div id="world-holder"></div>
+          <div class="world-bar">
+            <div id="world-info"></div>
+            <button id="world-home" class="btn btn-small" title="Vrátiť sa na začiatok">🏠</button>
+            <button id="world-full" class="btn btn-small" title="Na celú obrazovku">⛶</button>
+          </div>
+          <div id="world-log" class="output"></div>
         </div>
         <details id="reference" class="panel" open>
           <summary>📖 Príkazy – klikni a vložia sa do kódu</summary>
@@ -153,7 +164,7 @@
         <ul>
           <li><b>🧭 Dobrodružstvo</b> – poradie príkazov, opakovanie (cykly), rozhodovanie (podmienky) a hľadanie chýb.</li>
           <li><b>🎨 Kreslenie</b> – voľná tvorba s farbami a opakovaním.</li>
-          <li><b>💻 JavaScript</b> – skutočný kód: premenné, cykly, kreslenie aj animácie.</li>
+          <li><b>💻 JavaScript</b> – skutočný kód: premenné, cykly, kreslenie, animácie aj stavanie v 3D svete z kociek.</li>
         </ul>
 
         <h3>Súkromie</h3>

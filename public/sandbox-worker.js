@@ -20,7 +20,7 @@ let mainDone = false;
 let finished = false;
 const active = new Set(); // pending timers/frames: the program is done only when none are left
 
-const send = (msg) => postMessage(msg);
+const send = (msg, transfer) => postMessage(msg, transfer || []);
 
 // ---- console ------------------------------------------------------------
 
@@ -70,6 +70,7 @@ function lineOf(err) {
 function fail(err) {
   if (finished) return;
   finished = true;
+  flushWorld();
   const isError = err instanceof Error;
   send({
     type: 'error',
@@ -82,6 +83,7 @@ function fail(err) {
 function checkDone() {
   if (mainDone && active.size === 0 && !finished) {
     finished = true;
+    flushWorld();
     send({ type: 'done' });
   }
 }
@@ -271,6 +273,162 @@ Object.assign(self, {
   },
 });
 
+// ---- 3D world -------------------------------------------------------------
+// The worker keeps its own copy of the blocks, so getBlock() answers right away. Every change
+// is also queued as an operation and sent to the page in batches (src/sandbox/voxel/grid.ts),
+// which draws the world. The page keeps drawing even while this worker is busy or stopped.
+
+const OP_SET = 1; // keep in sync with src/sandbox/voxel/grid.ts
+const OP_FILL = 2;
+const OP_CLEAR = 3;
+const COLOR_FLAG = 0x8000;
+const FLUSH_AT = 30000; // queued numbers; a long loop sends its blocks in parts
+
+let world = null;
+
+function setupWorld(w) {
+  world = {
+    size: w.size,
+    ids: w.ids, // block name (English or Slovak) → id
+    names: Object.assign({}, w.names), // id → name returned by getBlock()
+    chunks: new Array((w.size / 16) ** 3).fill(null),
+    ops: [],
+    flushQueued: false,
+    known: new Map(), // type string → id (cache)
+  };
+  self.SIZE = w.size;
+}
+
+function flushWorld() {
+  if (!world || !world.ops.length) return;
+  const ops = Int32Array.from(world.ops);
+  world.ops.length = 0;
+  send({ type: 'world', ops }, [ops.buffer]);
+}
+
+function queue(...nums) {
+  const ops = world.ops;
+  for (const n of nums) ops.push(n);
+  if (ops.length >= FLUSH_AT) flushWorld();
+  else if (!world.flushQueued) {
+    // also send as soon as the program waits (await sleep, timers) or ends
+    world.flushQueued = true;
+    native.setTimeout(() => {
+      world.flushQueued = false;
+      flushWorld();
+    }, 0);
+  }
+}
+
+function worldFor(fname) {
+  if (!world) throw new Error(`${fname}() funguje len v 3D svete 🧱`);
+  return world;
+}
+
+const CHUNKS = 16; // chunks per axis (256 / 16)
+const inWorld = (x, y, z) => x >= 0 && y >= 0 && z >= 0 && x < world.size && y < world.size && z < world.size;
+const chunkOf = (x, y, z) => (x >> 4) + (z >> 4) * CHUNKS + (y >> 4) * CHUNKS * CHUNKS;
+const cellOf = (x, y, z) => (x & 15) + (z & 15) * 16 + (y & 15) * 256;
+
+function getId(x, y, z) {
+  if (!inWorld(x, y, z)) return 0;
+  const c = world.chunks[chunkOf(x, y, z)];
+  return c ? c[cellOf(x, y, z)] : 0;
+}
+
+/** Returns true when the cell changed. */
+function setId(x, y, z, id) {
+  if (!inWorld(x, y, z)) return false;
+  const ci = chunkOf(x, y, z);
+  let c = world.chunks[ci];
+  if (!c) {
+    if (id === 0) return false;
+    c = world.chunks[ci] = new Uint16Array(4096);
+  }
+  const i = cellOf(x, y, z);
+  if (c[i] === id) return false;
+  c[i] = id;
+  return true;
+}
+
+let colorCtx = null;
+
+/** CSS color → [r, g, b], or null if it is not a color. */
+function parseColor(s) {
+  colorCtx = colorCtx || new OffscreenCanvas(1, 1).getContext('2d');
+  colorCtx.fillStyle = '#010203';
+  colorCtx.fillStyle = s;
+  const v = colorCtx.fillStyle;
+  if (v === '#010203' && s.replace(/\s/g, '').toLowerCase() !== '#010203') return null;
+  if (v[0] === '#') return [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
+  const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(v);
+  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+}
+
+/** Block type ('stone', 'kameň', 'red', 'červená', '#ff8800', 'air', null) → block id. */
+function blockId(fname, type) {
+  const w = worldFor(fname);
+  if (type === undefined) return w.ids.stone;
+  if (type === null) return 0;
+  if (typeof type !== 'string') {
+    throw new Error(`${fname}: typ kocky musí byť text v úvodzovkách, napríklad 'stone' alebo 'red', ale je ${fmt(type, 1)}`);
+  }
+  if (w.known.has(type)) return w.known.get(type);
+  const key = type.trim().toLowerCase();
+  let id = w.ids[key];
+  if (id === undefined) {
+    const rgb = parseColor(colors[key] || key);
+    if (!rgb) {
+      throw new Error(`${fname}: kocku „${type}“ nepoznám. Skús napríklad 'stone', 'brick', 'gold' alebo farbu ako 'red'.`);
+    }
+    id = COLOR_FLAG | ((rgb[0] >> 3) << 10) | ((rgb[1] >> 3) << 5) | (rgb[2] >> 3);
+    if (!(id in w.names)) w.names[id] = type; // getBlock() returns the name used first
+  }
+  w.known.set(type, id);
+  return id;
+}
+
+function coords(fname, names, values) {
+  nums(fname, names, values);
+  return values.map(Math.round);
+}
+
+Object.assign(self, {
+  addBlock(x, y, z, type) {
+    [x, y, z] = coords('addBlock', ['x', 'y', 'z'], [x, y, z]);
+    const id = blockId('addBlock', type);
+    if (setId(x, y, z, id)) queue(OP_SET, x, y, z, id);
+  },
+  deleteBlock(x, y, z) {
+    worldFor('deleteBlock');
+    [x, y, z] = coords('deleteBlock', ['x', 'y', 'z'], [x, y, z]);
+    if (setId(x, y, z, 0)) queue(OP_SET, x, y, z, 0);
+  },
+  getBlock(x, y, z) {
+    const w = worldFor('getBlock');
+    [x, y, z] = coords('getBlock', ['x', 'y', 'z'], [x, y, z]);
+    const id = getId(x, y, z);
+    return id ? w.names[id] : null;
+  },
+  fill(x1, y1, z1, x2, y2, z2, type) {
+    let c = coords('fill', ['x1', 'y1', 'z1', 'x2', 'y2', 'z2'], [x1, y1, z1, x2, y2, z2]);
+    const id = blockId('fill', type);
+    const max = world.size - 1;
+    const lo = (a, b) => Math.max(0, Math.min(a, b));
+    const hi = (a, b) => Math.min(max, Math.max(a, b));
+    c = [lo(c[0], c[3]), lo(c[1], c[4]), lo(c[2], c[5]), hi(c[0], c[3]), hi(c[1], c[4]), hi(c[2], c[5])];
+    if (c[0] > c[3] || c[1] > c[4] || c[2] > c[5]) return; // completely outside the world
+    for (let y = c[1]; y <= c[4]; y++) for (let z = c[2]; z <= c[5]; z++) for (let x = c[0]; x <= c[3]; x++) setId(x, y, z, id);
+    queue(OP_FILL, ...c, id);
+  },
+  clearWorld() {
+    const w = worldFor('clearWorld');
+    w.chunks.fill(null);
+    w.ops.length = 0; // nothing queued matters any more
+    queue(OP_CLEAR);
+  },
+});
+
 // ---- run ----------------------------------------------------------------
 
 self.onmessage = (e) => {
@@ -286,6 +444,7 @@ self.onmessage = (e) => {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
   }
+  if (m.world) setupWorld(m.world);
   // Wrapping in an async function lets kids use `await sleep(…)` anywhere.
   const src = `(async () => {\n${m.code}\n})().then(() => { self.__kuboMainDone(); }, (e) => { self.__kuboFail(e); });`;
   const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));

@@ -114,7 +114,7 @@ function showView(view: 'game' | 'code') {
       () => toast('JavaScript editor sa nepodarilo načítať. Skontroluj pripojenie a skús to znova.', true),
     );
   } else {
-    sandbox?.stop();
+    sandbox?.hide();
     Blockly.svgResize(ws);
   }
   renderLevelBar();

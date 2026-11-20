@@ -506,6 +506,7 @@ main[hidden] {
 
 .editor[hidden],
 #draw-out[hidden],
+#world-out[hidden],
 .output[hidden] {
   display: none;
 }
@@ -573,6 +574,7 @@ main[hidden] {
 }
 
 #draw-out,
+#world-out,
 #reference {
   flex: none;
 }
@@ -604,12 +606,132 @@ main[hidden] {
   color: var(--muted);
 }
 
-#draw-log {
+#draw-log,
+#world-log {
   max-height: 110px;
 }
 
-#draw-log:empty {
+#draw-log:empty,
+#world-log:empty {
   display: none;
+}
+
+/* ---- 🧱 3D world ---- */
+
+#world-out {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#world-holder {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: min(100%, calc(62vh * 4 / 3));
+  margin: 0 auto;
+  background: #8ec9ff;
+  border: 4px solid var(--border);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+#world-holder:fullscreen {
+  width: 100%;
+  border: none;
+}
+
+#world-holder canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.world-hint {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  background: rgba(10, 13, 22, 0.78);
+  border: 3px solid #000;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.world-crosshair {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background:
+    linear-gradient(#fff, #fff) center / 22px 3px no-repeat,
+    linear-gradient(#fff, #fff) center / 3px 22px no-repeat;
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000);
+}
+
+#world-holder.locked .world-crosshair {
+  display: block;
+}
+
+#world-holder.locked .world-hint {
+  display: none;
+}
+
+.world-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#world-info {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.ref-blocks {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ref-blocks p {
+  flex-basis: 100%;
+  margin: 0 0 2px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.block-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
+  color: var(--text);
+  background: #1a1f2d;
+  border: 2px solid #000;
+  cursor: pointer;
+}
+
+.block-chip:hover {
+  border-color: var(--neon);
+}
+
+.block-chip img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
 }
 
 #reference {

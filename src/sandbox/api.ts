@@ -1,4 +1,6 @@
-export type SandboxMode = 'console' | 'draw';
+export type SandboxMode = 'console' | 'draw' | 'world';
+
+export const SANDBOX_MODES: SandboxMode[] = ['console', 'draw', 'world'];
 
 export interface ApiDoc {
   name: string;
@@ -9,14 +11,15 @@ export interface ApiDoc {
   modes: SandboxMode[];
 }
 
-const BOTH: SandboxMode[] = ['console', 'draw'];
+const ALL = SANDBOX_MODES;
 const DRAW: SandboxMode[] = ['draw'];
+const WORLD: SandboxMode[] = ['world'];
 
 // Functions provided by public/sandbox-worker.js. Names are English on purpose: this is "real" JavaScript.
 export const API_DOCS: ApiDoc[] = [
-  { name: 'console.log', args: '(hodnota, …)', snippet: "console.log('${Ahoj}')", info: 'Vypíše text alebo čísla do konzoly.', modes: BOTH },
-  { name: 'random', args: '(min, max)', snippet: 'random(${1}, ${10})', info: 'Náhodné celé číslo od min po max (vrátane).', modes: BOTH },
-  { name: 'sleep', args: '(ms)', snippet: 'await sleep(${500})', info: 'Počká daný počet milisekúnd (1000 = 1 sekunda). Pred sleep píš await.', modes: BOTH },
+  { name: 'console.log', args: '(hodnota, …)', snippet: "console.log('${Ahoj}')", info: 'Vypíše text alebo čísla do konzoly.', modes: ALL },
+  { name: 'random', args: '(min, max)', snippet: 'random(${1}, ${10})', info: 'Náhodné celé číslo od min po max (vrátane).', modes: ALL },
+  { name: 'sleep', args: '(ms)', snippet: 'await sleep(${500})', info: 'Počká daný počet milisekúnd (1000 = 1 sekunda). Pred sleep píš await.', modes: ALL },
   { name: 'background', args: '(farba)', snippet: "background('${skyblue}')", info: 'Zafarbí celé plátno.', modes: DRAW },
   { name: 'clear', args: '()', snippet: 'clear()', info: 'Vymaže plátno.', modes: DRAW },
   { name: 'line', args: '(x1, y1, x2, y2, farba, hrúbka)', snippet: "line(${50}, ${50}, ${300}, ${200}, '${black}', ${4})", info: 'Čiara z bodu [x1, y1] do bodu [x2, y2].', modes: DRAW },
@@ -30,6 +33,12 @@ export const API_DOCS: ApiDoc[] = [
   { name: 'fillTriangle', args: '(x1, y1, x2, y2, x3, y3, farba)', snippet: "fillTriangle(${320}, ${100}, ${220}, ${300}, ${420}, ${300}, '${green}')", info: 'Vyplnený trojuholník s tromi vrcholmi.', modes: DRAW },
   { name: 'point', args: '(x, y, farba)', snippet: "point(${100}, ${100}, '${black}')", info: 'Jeden pixel.', modes: DRAW },
   { name: 'text', args: '(x, y, text, veľkosť, farba)', snippet: "text(${20}, ${20}, '${Ahoj!}', ${32}, '${black}')", info: 'Napíše text; [x, y] je ľavý horný roh.', modes: DRAW },
+  { name: 'addBlock', args: '(x, y, z, kocka)', snippet: "addBlock(${0}, ${0}, ${0}, '${stone}')", info: 'Postaví kocku. y ide hore, y = 0 leží na tráve. Kocka je typ zo zoznamu nižšie alebo farba, napr. „red“.', modes: WORLD },
+  { name: 'deleteBlock', args: '(x, y, z)', snippet: 'deleteBlock(${0}, ${0}, ${0})', info: 'Odstráni kocku.', modes: WORLD },
+  { name: 'getBlock', args: '(x, y, z)', snippet: 'getBlock(${0}, ${0}, ${0})', info: 'Zistí, aká kocka je na mieste [x, y, z]. Ak tam nič nie je, vráti null.', modes: WORLD },
+  { name: 'fill', args: '(x1, y1, z1, x2, y2, z2, kocka)', snippet: "fill(${0}, ${0}, ${0}, ${4}, ${2}, ${4}, '${brick}')", info: 'Vyplní celý kváder medzi dvoma rohmi. S kockou „air“ kváder vyprázdni.', modes: WORLD },
+  { name: 'clearWorld', args: '()', snippet: 'clearWorld()', info: 'Odstráni všetky kocky.', modes: WORLD },
+  { name: 'SIZE', args: '', snippet: 'SIZE', info: 'Veľkosť sveta: 256 kociek na každú stranu (súradnice 0 až 255).', modes: WORLD },
   { name: 'WIDTH', args: '', snippet: 'WIDTH', info: 'Šírka plátna (640).', modes: DRAW },
   { name: 'HEIGHT', args: '', snippet: 'HEIGHT', info: 'Výška plátna (480).', modes: DRAW },
 ];
@@ -54,6 +63,35 @@ console.log('Ahoj, svet!');
 
 for (let i = 1; i <= 5; i++) {
   console.log('Kubo skočil ' + i + '-krát');
+}
+`,
+  world: `// 3D svet má 256 × 256 × 256 kociek. x a z idú po tráve, y ide hore.
+// Kocka [0, 0, 0] leží na tráve pri farebných šípkach.
+// Klikni do sveta a lietaj: W A S D, medzerník = hore, Shift = dole, Esc = koniec.
+
+// Domček
+fill(2, 0, 2, 8, 3, 8, 'planks');   // plný kváder z dosiek…
+fill(3, 0, 3, 7, 3, 7, 'air');      // …a vnútro vyprázdnime
+fill(5, 0, 2, 5, 1, 2, 'air');      // dvere
+addBlock(2, 2, 5, 'lamp');          // okno, ktoré svieti
+
+// Strecha: každá vrstva je menšia
+for (let i = 0; i < 4; i++) {
+  fill(1 + i, 4 + i, 1 + i, 9 - i, 4 + i, 9 - i, 'brick');
+}
+
+// Strom
+fill(12, 4, 3, 16, 5, 7, 'leaves');
+addBlock(14, 6, 5, 'leaves');
+for (let y = 0; y < 5; y++) {
+  addBlock(14, y, 5, 'wood');
+}
+
+// Dúhová veža sa stavia pomaly
+const farby = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+for (let y = 0; y < 12; y++) {
+  addBlock(20, y, 6, farby[y % farby.length]);
+  await sleep(150);
 }
 `,
   draw: `// Plátno má veľkosť 640 × 480. Bod [0, 0] je vľavo hore.

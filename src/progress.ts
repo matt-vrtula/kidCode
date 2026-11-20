@@ -9,7 +9,7 @@ export interface Progress {
   level: number;
   /** Which part of the app was open last: the block game or the JavaScript sandbox. */
   view: 'game' | 'code';
-  codeMode: 'console' | 'draw';
+  codeMode: 'console' | 'draw' | 'world';
   /** Saved JavaScript per sandbox mode. */
   code: Record<string, string>;
 }
